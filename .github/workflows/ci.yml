@@ -21,3 +21,22 @@ jobs:
       - run: dotnet build --no-restore --configuration Release
       - run: dotnet format --verify-no-changes --no-restore
       - run: dotnet test --no-build --configuration Release --logger "console;verbosity=normal"
+
+  web:
+    name: Web (lint, format, test, build)
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: web
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: web/package-lock.json
+      - run: npm ci
+      - run: npm run lint
+      - run: npm run format:check
+      - run: npm test
+      - run: npm run build
