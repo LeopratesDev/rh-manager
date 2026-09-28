@@ -29,10 +29,16 @@ var app = builder.Build();
 app.UseExceptionHandler();
 app.UseStatusCodePages();
 
-if (app.Environment.IsDevelopment())
+var isDevelopment = app.Environment.IsDevelopment();
+
+if (isDevelopment || app.Configuration.GetValue<bool>("ApiDocs:Enabled"))
 {
     app.MapOpenApi();
     app.MapScalarApiReference(options => options.WithTitle("RH Manager API"));
+}
+
+if (isDevelopment || app.Configuration.GetValue<bool>("Database:MigrateAndSeedOnStartup"))
+{
     await app.Services.MigrateAndSeedAsync();
 }
 
