@@ -1,9 +1,10 @@
 using Microsoft.EntityFrameworkCore;
+using RhManager.Application.Common;
 using RhManager.Domain.Entities;
 
 namespace RhManager.Infrastructure.Persistence;
 
-public class AppDbContext(DbContextOptions<AppDbContext> options) : DbContext(options)
+public class AppDbContext(DbContextOptions<AppDbContext> options) : DbContext(options), IAppDbContext
 {
     public DbSet<Department> Departments => Set<Department>();
     public DbSet<Employee> Employees => Set<Employee>();
