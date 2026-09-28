@@ -1,11 +1,12 @@
 import { Navigate, Route, Routes } from 'react-router';
 import { AppLayout } from './components/AppLayout';
-import { PageHeader } from './components/PageHeader';
+import { DashboardPage } from './features/dashboard/DashboardPage';
 import { DepartmentsPage } from './features/departments/DepartmentsPage';
 import { EmployeeFormPage } from './features/employees/EmployeeFormPage';
 import { EmployeesPage } from './features/employees/EmployeesPage';
 import { LoginPage } from './features/auth/LoginPage';
 import { ProtectedRoute } from './features/auth/ProtectedRoute';
+import { VacationsPage } from './features/vacations/VacationsPage';
 
 export function App() {
   return (
@@ -14,13 +15,13 @@ export function App() {
       <Route element={<ProtectedRoute />}>
         <Route element={<AppLayout />}>
           <Route element={<ProtectedRoute roles={['Admin']} />}>
-            <Route path="/dashboard" element={<PageHeader title="Dashboard" />} />
+            <Route path="/dashboard" element={<DashboardPage />} />
             <Route path="/employees" element={<EmployeesPage />} />
             <Route path="/employees/new" element={<EmployeeFormPage />} />
             <Route path="/employees/:id/edit" element={<EmployeeFormPage />} />
             <Route path="/departments" element={<DepartmentsPage />} />
           </Route>
-          <Route path="/vacations" element={<PageHeader title="Férias" />} />
+          <Route path="/vacations" element={<VacationsPage />} />
         </Route>
       </Route>
       <Route path="*" element={<Navigate to="/login" replace />} />
