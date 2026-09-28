@@ -40,3 +40,14 @@ jobs:
       - run: npm run format:check
       - run: npm test
       - run: npm run build
+
+  docker:
+    name: Docker (compose build)
+    runs-on: ubuntu-latest
+    env:
+      MSSQL_SA_PASSWORD: ci-only-Placeholder1!
+      JWT_KEY: ci-only-placeholder-key-with-at-least-32-characters
+    steps:
+      - uses: actions/checkout@v4
+      - run: docker compose config --quiet
+      - run: docker compose build
