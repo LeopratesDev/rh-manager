@@ -1,6 +1,9 @@
 import { Navigate, Route, Routes } from 'react-router';
 import { AppLayout } from './components/AppLayout';
 import { PageHeader } from './components/PageHeader';
+import { DepartmentsPage } from './features/departments/DepartmentsPage';
+import { EmployeeFormPage } from './features/employees/EmployeeFormPage';
+import { EmployeesPage } from './features/employees/EmployeesPage';
 import { LoginPage } from './features/auth/LoginPage';
 import { ProtectedRoute } from './features/auth/ProtectedRoute';
 
@@ -12,8 +15,10 @@ export function App() {
         <Route element={<AppLayout />}>
           <Route element={<ProtectedRoute roles={['Admin']} />}>
             <Route path="/dashboard" element={<PageHeader title="Dashboard" />} />
-            <Route path="/employees" element={<PageHeader title="Funcionários" />} />
-            <Route path="/departments" element={<PageHeader title="Departamentos" />} />
+            <Route path="/employees" element={<EmployeesPage />} />
+            <Route path="/employees/new" element={<EmployeeFormPage />} />
+            <Route path="/employees/:id/edit" element={<EmployeeFormPage />} />
+            <Route path="/departments" element={<DepartmentsPage />} />
           </Route>
           <Route path="/vacations" element={<PageHeader title="Férias" />} />
         </Route>
