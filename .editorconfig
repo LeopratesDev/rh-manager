@@ -24,3 +24,6 @@ dotnet_naming_style.underscore_camel.capitalization = camel_case
 
 [*.md]
 trim_trailing_whitespace = false
+
+[**/Migrations/*.cs]
+generated_code = true
