@@ -1,6 +1,7 @@
 using FluentValidation;
 using Microsoft.Extensions.DependencyInjection;
 using RhManager.Application.Auth;
+using RhManager.Application.Dashboard;
 using RhManager.Application.Departments;
 using RhManager.Application.Employees;
 using RhManager.Application.Vacations;
@@ -16,6 +17,7 @@ public static class DependencyInjection
         services.AddScoped<IEmployeeService, EmployeeService>();
         services.AddScoped<IVacationService, VacationService>();
         services.AddScoped<IAuthService, AuthService>();
+        services.AddScoped<IDashboardService, DashboardService>();
         services.AddSingleton(TimeProvider.System);
 
         return services;
