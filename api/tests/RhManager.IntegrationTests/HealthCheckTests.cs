@@ -1,11 +1,10 @@
 using System.Net;
 using FluentAssertions;
-using Microsoft.AspNetCore.Mvc.Testing;
 
 namespace RhManager.IntegrationTests;
 
-public class HealthCheckTests(WebApplicationFactory<Program> factory)
-    : IClassFixture<WebApplicationFactory<Program>>
+public class HealthCheckTests(ApiFactory factory)
+    : IClassFixture<ApiFactory>
 {
     [Fact]
     public async Task GetHealth_WhenApiIsRunning_ReturnsOkWithHealthyStatus()
