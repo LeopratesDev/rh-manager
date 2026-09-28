@@ -14,6 +14,8 @@ public class GlobalExceptionHandler(IProblemDetailsService problemDetailsService
         var problem = exception switch
         {
             ValidationException validation => CreateValidationProblem(validation),
+            UnauthorizedException => new ProblemDetails { Status = StatusCodes.Status401Unauthorized, Title = "Não autenticado", Detail = exception.Message },
+            ForbiddenException => new ProblemDetails { Status = StatusCodes.Status403Forbidden, Title = "Acesso negado", Detail = exception.Message },
             NotFoundException => new ProblemDetails { Status = StatusCodes.Status404NotFound, Title = "Recurso não encontrado", Detail = exception.Message },
             ConflictException or DomainException => new ProblemDetails { Status = StatusCodes.Status409Conflict, Title = "Conflito", Detail = exception.Message },
             _ => new ProblemDetails { Status = StatusCodes.Status500InternalServerError, Title = "Erro interno no servidor" }
