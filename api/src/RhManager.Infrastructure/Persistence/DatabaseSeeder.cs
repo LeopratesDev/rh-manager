@@ -1,18 +1,30 @@
 using System.Text;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
+using RhManager.Application.Auth;
 using RhManager.Domain.Entities;
 using RhManager.Domain.Enums;
 
 namespace RhManager.Infrastructure.Persistence;
 
-public class DatabaseSeeder(AppDbContext context, ILogger<DatabaseSeeder> logger)
+public class DatabaseSeeder(AppDbContext context, IPasswordHasher passwordHasher, ILogger<DatabaseSeeder> logger)
 {
+    public const string DemoAdminEmail = "admin@rhmanager.dev";
+    public const string DemoAdminPassword = "Admin@123";
+    public const string DemoEmployeeEmail = "ana.souza@rhmanager.dev";
+    public const string DemoEmployeePassword = "Colab@123";
+
     public async Task SeedAsync(CancellationToken cancellationToken = default)
+    {
+        await SeedEmployeesAsync(cancellationToken);
+        await SeedUsersAsync(cancellationToken);
+    }
+
+    private async Task SeedEmployeesAsync(CancellationToken cancellationToken)
     {
         if (await context.Departments.AnyAsync(cancellationToken))
         {
-            logger.LogInformation("Database already seeded, skipping");
+            logger.LogInformation("Departments and employees already seeded, skipping");
             return;
         }
 
@@ -25,6 +37,24 @@ public class DatabaseSeeder(AppDbContext context, ILogger<DatabaseSeeder> logger
         await context.SaveChangesAsync(cancellationToken);
 
         logger.LogInformation("Database seeded with demo departments and employees");
+    }
+
+    private async Task SeedUsersAsync(CancellationToken cancellationToken)
+    {
+        if (await context.Users.AnyAsync(cancellationToken))
+        {
+            logger.LogInformation("Users already seeded, skipping");
+            return;
+        }
+
+        var demoEmployee = await context.Employees.SingleAsync(e => e.Email == DemoEmployeeEmail, cancellationToken);
+
+        context.Users.AddRange(
+            new User { Email = DemoAdminEmail, PasswordHash = passwordHasher.Hash(DemoAdminPassword), Role = UserRole.Admin },
+            new User { Email = DemoEmployeeEmail, PasswordHash = passwordHasher.Hash(DemoEmployeePassword), Role = UserRole.Employee, EmployeeId = demoEmployee.Id });
+        await context.SaveChangesAsync(cancellationToken);
+
+        logger.LogInformation("Database seeded with demo admin and employee users");
     }
 
     private static List<Employee> CreateEmployees(Department technology, Department people, Department finance) =>
