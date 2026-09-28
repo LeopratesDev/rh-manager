@@ -2,6 +2,7 @@ using System.Linq.Expressions;
 using FluentValidation;
 using FluentValidation.Results;
 using Microsoft.EntityFrameworkCore;
+using RhManager.Application.Auth;
 using RhManager.Application.Common;
 using RhManager.Application.Common.Exceptions;
 using RhManager.Domain.Entities;
@@ -13,6 +14,7 @@ namespace RhManager.Application.Vacations;
 public interface IVacationService
 {
     Task<IReadOnlyList<VacationResponse>> ListAsync(VacationStatus? status, int? employeeId, CancellationToken cancellationToken);
+    Task<IReadOnlyList<VacationResponse>> ListMineAsync(CancellationToken cancellationToken);
     Task<VacationResponse> GetByIdAsync(int id, CancellationToken cancellationToken);
     Task<VacationResponse> CreateAsync(CreateVacationRequest request, CancellationToken cancellationToken);
     Task ApproveAsync(int id, CancellationToken cancellationToken);
@@ -21,6 +23,7 @@ public interface IVacationService
 
 public class VacationService(
     IAppDbContext context,
+    ICurrentUser currentUser,
     TimeProvider timeProvider,
     IValidator<CreateVacationRequest> createValidator,
     IValidator<RejectVacationRequest> rejectValidator) : IVacationService
@@ -50,18 +53,30 @@ public class VacationService(
             .ToListAsync(cancellationToken);
     }
 
-    public async Task<VacationResponse> GetByIdAsync(int id, CancellationToken cancellationToken) =>
-        await context.VacationRequests
+    public Task<IReadOnlyList<VacationResponse>> ListMineAsync(CancellationToken cancellationToken) =>
+        ListAsync(null, RequireEmployeeId(), cancellationToken);
+
+    public async Task<VacationResponse> GetByIdAsync(int id, CancellationToken cancellationToken)
+    {
+        var vacation = await context.VacationRequests
             .AsNoTracking()
             .Where(v => v.Id == id)
             .Select(_toResponse)
             .FirstOrDefaultAsync(cancellationToken)
-        ?? throw new NotFoundException("Solicitação de férias", id);
+            ?? throw new NotFoundException("Solicitação de férias", id);
+
+        if (!currentUser.IsAdmin && vacation.EmployeeId != currentUser.EmployeeId)
+        {
+            throw new ForbiddenException("Você só pode consultar as suas próprias solicitações.");
+        }
+
+        return vacation;
+    }
 
     public async Task<VacationResponse> CreateAsync(CreateVacationRequest request, CancellationToken cancellationToken)
     {
         await createValidator.ValidateAndThrowAsync(request, cancellationToken);
-        var employee = await FindActiveEmployeeAsync(request.EmployeeId, cancellationToken);
+        var employee = await FindActiveEmployeeAsync(RequireEmployeeId(), cancellationToken);
 
         var now = timeProvider.GetLocalNow().DateTime;
         var policyErrors = VacationPolicy.Validate(request.StartDate, request.EndDate, employee.HireDate, DateOnly.FromDateTime(now));
@@ -70,7 +85,7 @@ public class VacationService(
             throw new ValidationException(policyErrors.Select(error => new ValidationFailure("period", error)));
         }
 
-        await EnsureNoOverlapAsync(request, cancellationToken);
+        await EnsureNoOverlapAsync(employee.Id, request, cancellationToken);
 
         var vacation = new VacationRequest
         {
@@ -102,6 +117,10 @@ public class VacationService(
         await context.SaveChangesAsync(cancellationToken);
     }
 
+    private int RequireEmployeeId() =>
+        currentUser.EmployeeId
+        ?? throw new ForbiddenException("Seu usuário não está vinculado a um funcionário.");
+
     private async Task<VacationRequest> FindAsync(int id, CancellationToken cancellationToken) =>
         await context.VacationRequests.FindAsync([id], cancellationToken)
         ?? throw new NotFoundException("Solicitação de férias", id);
@@ -111,17 +130,16 @@ public class VacationService(
         var employee = await context.Employees.FindAsync([employeeId], cancellationToken);
         if (employee is null || employee.Status != EmployeeStatus.Active)
         {
-            throw new ValidationException(
-                [new ValidationFailure(nameof(CreateVacationRequest.EmployeeId), "Funcionário não encontrado ou inativo.")]);
+            throw new ForbiddenException("Somente funcionários ativos podem solicitar férias.");
         }
 
         return employee;
     }
 
-    private async Task EnsureNoOverlapAsync(CreateVacationRequest request, CancellationToken cancellationToken)
+    private async Task EnsureNoOverlapAsync(int employeeId, CreateVacationRequest request, CancellationToken cancellationToken)
     {
         var overlaps = await context.VacationRequests.AnyAsync(v =>
-            v.EmployeeId == request.EmployeeId &&
+            v.EmployeeId == employeeId &&
             (v.Status == VacationStatus.Pending || v.Status == VacationStatus.Approved) &&
             v.StartDate <= request.EndDate &&
             request.StartDate <= v.EndDate,

@@ -1,10 +1,14 @@
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using RhManager.Application.Departments;
+
+using RhManager.Domain.Enums;
 
 namespace RhManager.Api.Controllers;
 
 [ApiController]
 [Route("api/departments")]
+[Authorize(Roles = nameof(UserRole.Admin))]
 [Produces("application/json")]
 public class DepartmentsController(IDepartmentService departmentService) : ControllerBase
 {

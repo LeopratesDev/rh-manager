@@ -1,11 +1,15 @@
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using RhManager.Application.Common;
 using RhManager.Application.Employees;
+
+using RhManager.Domain.Enums;
 
 namespace RhManager.Api.Controllers;
 
 [ApiController]
 [Route("api/employees")]
+[Authorize(Roles = nameof(UserRole.Admin))]
 [Produces("application/json")]
 public class EmployeesController(IEmployeeService employeeService) : ControllerBase
 {

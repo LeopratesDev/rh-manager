@@ -1,3 +1,4 @@
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using RhManager.Application.Vacations;
 using RhManager.Domain.Enums;
@@ -10,13 +11,21 @@ namespace RhManager.Api.Controllers;
 public class VacationsController(IVacationService vacationService) : ControllerBase
 {
     [HttpGet]
+    [Authorize(Roles = nameof(UserRole.Admin))]
     [ProducesResponseType<IReadOnlyList<VacationResponse>>(StatusCodes.Status200OK)]
     public async Task<IActionResult> List(
         [FromQuery] VacationStatus? status, [FromQuery] int? employeeId, CancellationToken cancellationToken) =>
         Ok(await vacationService.ListAsync(status, employeeId, cancellationToken));
 
+    [HttpGet("mine")]
+    [ProducesResponseType<IReadOnlyList<VacationResponse>>(StatusCodes.Status200OK)]
+    [ProducesResponseType<ProblemDetails>(StatusCodes.Status403Forbidden)]
+    public async Task<IActionResult> ListMine(CancellationToken cancellationToken) =>
+        Ok(await vacationService.ListMineAsync(cancellationToken));
+
     [HttpGet("{id:int}")]
     [ProducesResponseType<VacationResponse>(StatusCodes.Status200OK)]
+    [ProducesResponseType<ProblemDetails>(StatusCodes.Status403Forbidden)]
     [ProducesResponseType<ProblemDetails>(StatusCodes.Status404NotFound)]
     public async Task<IActionResult> GetById(int id, CancellationToken cancellationToken) =>
         Ok(await vacationService.GetByIdAsync(id, cancellationToken));
@@ -24,6 +33,7 @@ public class VacationsController(IVacationService vacationService) : ControllerB
     [HttpPost]
     [ProducesResponseType<VacationResponse>(StatusCodes.Status201Created)]
     [ProducesResponseType<ValidationProblemDetails>(StatusCodes.Status400BadRequest)]
+    [ProducesResponseType<ProblemDetails>(StatusCodes.Status403Forbidden)]
     [ProducesResponseType<ProblemDetails>(StatusCodes.Status409Conflict)]
     public async Task<IActionResult> Create(CreateVacationRequest request, CancellationToken cancellationToken)
     {
@@ -32,6 +42,7 @@ public class VacationsController(IVacationService vacationService) : ControllerB
     }
 
     [HttpPost("{id:int}/approve")]
+    [Authorize(Roles = nameof(UserRole.Admin))]
     [ProducesResponseType(StatusCodes.Status204NoContent)]
     [ProducesResponseType<ProblemDetails>(StatusCodes.Status404NotFound)]
     [ProducesResponseType<ProblemDetails>(StatusCodes.Status409Conflict)]
@@ -42,6 +53,7 @@ public class VacationsController(IVacationService vacationService) : ControllerB
     }
 
     [HttpPost("{id:int}/reject")]
+    [Authorize(Roles = nameof(UserRole.Admin))]
     [ProducesResponseType(StatusCodes.Status204NoContent)]
     [ProducesResponseType<ValidationProblemDetails>(StatusCodes.Status400BadRequest)]
     [ProducesResponseType<ProblemDetails>(StatusCodes.Status404NotFound)]
