@@ -1,0 +1,11 @@
+<Solution>
+  <Folder Name="/src/">
+    <Project Path="src/RhManager.Api/RhManager.Api.csproj" />
+    <Project Path="src/RhManager.Application/RhManager.Application.csproj" />
+    <Project Path="src/RhManager.Domain/RhManager.Domain.csproj" />
+    <Project Path="src/RhManager.Infrastructure/RhManager.Infrastructure.csproj" />
+  </Folder>
+  <Folder Name="/tests/">
+    <Project Path="tests/RhManager.IntegrationTests/RhManager.IntegrationTests.csproj" />
+  </Folder>
+</Solution>
