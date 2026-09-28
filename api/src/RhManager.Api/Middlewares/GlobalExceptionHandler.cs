@@ -2,6 +2,7 @@ using FluentValidation;
 using Microsoft.AspNetCore.Diagnostics;
 using Microsoft.AspNetCore.Mvc;
 using RhManager.Application.Common.Exceptions;
+using RhManager.Domain.Common;
 
 namespace RhManager.Api.Middlewares;
 
@@ -14,7 +15,7 @@ public class GlobalExceptionHandler(IProblemDetailsService problemDetailsService
         {
             ValidationException validation => CreateValidationProblem(validation),
             NotFoundException => new ProblemDetails { Status = StatusCodes.Status404NotFound, Title = "Recurso não encontrado", Detail = exception.Message },
-            ConflictException => new ProblemDetails { Status = StatusCodes.Status409Conflict, Title = "Conflito", Detail = exception.Message },
+            ConflictException or DomainException => new ProblemDetails { Status = StatusCodes.Status409Conflict, Title = "Conflito", Detail = exception.Message },
             _ => new ProblemDetails { Status = StatusCodes.Status500InternalServerError, Title = "Erro interno no servidor" }
         };
 
