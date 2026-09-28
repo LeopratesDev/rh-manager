@@ -17,6 +17,6 @@ public record VacationResponse(
     public int Days => VacationPolicy.CountDays(StartDate, EndDate);
 }
 
-public record CreateVacationRequest(int EmployeeId, DateOnly StartDate, DateOnly EndDate);
+public record CreateVacationRequest(DateOnly StartDate, DateOnly EndDate);
 
 public record RejectVacationRequest(string Reason);

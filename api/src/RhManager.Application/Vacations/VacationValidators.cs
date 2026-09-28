@@ -6,7 +6,6 @@ public class CreateVacationRequestValidator : AbstractValidator<CreateVacationRe
 {
     public CreateVacationRequestValidator()
     {
-        RuleFor(x => x.EmployeeId).GreaterThan(0);
         RuleFor(x => x.StartDate).NotEmpty();
         RuleFor(x => x.EndDate).NotEmpty();
     }

@@ -8,7 +8,7 @@ namespace RhManager.IntegrationTests;
 
 public class DepartmentsEndpointsTests(ApiFactory factory) : IClassFixture<ApiFactory>
 {
-    private readonly HttpClient _client = factory.CreateClient();
+    private readonly HttpClient _client = factory.CreateAdminClient();
 
     [Fact]
     public async Task Create_WithValidName_Returns201WithLocationHeader()

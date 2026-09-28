@@ -13,7 +13,7 @@ public class VacationsEndpointsTests(ApiFactory factory) : IClassFixture<ApiFact
     private static readonly DateOnly _today = DateOnly.FromDateTime(DateTime.Now);
     private static readonly DateOnly _nextMonth = _today.AddMonths(1);
 
-    private readonly HttpClient _client = factory.CreateClient();
+    private readonly HttpClient _client = factory.CreateAdminClient();
 
     [Fact]
     public async Task Create_WithValidPeriod_Returns201AsPending()
@@ -199,7 +199,7 @@ public class VacationsEndpointsTests(ApiFactory factory) : IClassFixture<ApiFact
     }
 
     private Task<HttpResponseMessage> PostVacationAsync(int employeeId, DateOnly start, DateOnly end) =>
-        _client.PostAsJsonAsync("/api/vacations", new CreateVacationRequest(employeeId, start, end));
+        factory.CreateEmployeeClient(employeeId).PostAsJsonAsync("/api/vacations", new CreateVacationRequest(start, end));
 
     private async Task<VacationResponse> CreateVacationAsync(int employeeId, DateOnly start, DateOnly end)
     {
