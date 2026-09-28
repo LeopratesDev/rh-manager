@@ -5,6 +5,9 @@
 Sistema de gestão de RH com cadastro de funcionários e departamentos e solicitação de férias com fluxo de aprovação.
 API REST em **C# / ASP.NET Core (.NET 10)** com **SQL Server**, e painel web em **React + TypeScript**.
 
+**Demo online:** https://leopratesdev.github.io/rh-manager/ · [documentação da API](https://rh-manager-api-nmsbk.azurewebsites.net/scalar/v1)
+Use os [usuários de demonstração](#usuários-de-demonstração). O primeiro acesso pode levar cerca de 1 minuto, porque a API e o banco ficam em planos gratuitos que "dormem" quando estão sem uso.
+
 ![Dashboard](docs/screenshots/dashboard.png)
 
 | Funcionários | Férias (colaborador) |
@@ -25,9 +28,9 @@ API REST em **C# / ASP.NET Core (.NET 10)** com **SQL Server**, e painel web em 
 ## Em números
 
 - **21 endpoints REST**, com erros padronizados em ProblemDetails (RFC 7807).
-- **142 testes automatizados:** 32 unitários e 64 de integração na API, mais 46 no front.
+- **146 testes automatizados:** 32 unitários e 68 de integração na API, mais 46 no front.
 - **5 telas:** Login, Dashboard, Funcionários, Departamentos e Férias.
-- **3 jobs de CI** em cada push e PR: API, Web e Docker.
+- **3 jobs de CI** em cada push e PR (API, Web e Docker), e **deploy contínuo** para o Azure e o GitHub Pages.
 
 ## Tecnologias
 
@@ -36,7 +39,7 @@ API REST em **C# / ASP.NET Core (.NET 10)** com **SQL Server**, e painel web em 
 | API | C# 14, ASP.NET Core 10 (Controllers), Entity Framework Core 10, SQL Server, FluentValidation, JWT Bearer, OpenAPI + Scalar |
 | Front | React 19, TypeScript (strict), Vite, React Router, TanStack Query, React Hook Form + Zod, Tailwind CSS, axios |
 | Testes | xUnit, FluentAssertions, WebApplicationFactory + SQLite em memória, Vitest, Testing Library |
-| Infra | Docker Compose, GitHub Actions, EditorConfig, `dotnet format`, ESLint, Prettier |
+| Infra | Docker Compose, GitHub Actions, Azure App Service, Azure SQL, GitHub Pages, EditorConfig, `dotnet format`, ESLint, Prettier |
 
 ## Funcionalidades
 
@@ -198,7 +201,7 @@ Documentação completa, com schemas e o botão para colar o token, em `/scalar/
 ## Testes
 
 ```bash
-cd api && dotnet test          # 32 unitários + 64 de integração
+cd api && dotnet test          # 32 unitários + 68 de integração
 cd web && npm test             # 46 testes
 ```
 
@@ -231,6 +234,32 @@ cd web && npm test             # 46 testes
    - `GlobalExceptionHandler` só traduz exceções em HTTP.
 3. **Aberto/fechado (O):** cada configuração de tabela é uma classe `IEntityTypeConfiguration<T>`, carregada por `ApplyConfigurationsFromAssembly`. Uma entidade nova não exige alterar o `AppDbContext`.
 
+## Deploy
+
+```mermaid
+flowchart LR
+    Dev["push na main"] --> GA["GitHub Actions"]
+    GA -- "OIDC, sem segredo" --> App["Azure App Service F1<br/>API .NET 10"]
+    GA --> Pages["GitHub Pages<br/>React"]
+    Pages -- "HTTPS + JWT" --> App
+    App -- "identidade gerenciada, sem senha" --> Sql[("Azure SQL<br/>free offer")]
+```
+
+| Parte | Onde | Custo |
+|---|---|---|
+| Front | GitHub Pages (`deploy-web.yml`) | grátis |
+| API | Azure App Service **F1 (Free)**, Linux (`deploy-api.yml`) | grátis |
+| Banco | Azure SQL Database, **free offer** com *auto-pause* ao atingir o limite mensal | grátis, sem cobrança por excedente |
+
+- **Zero segredos no repositório.** O GitHub Actions entra no Azure por **federação OIDC**:
+  - a cada execução, o GitHub emite um token de curta duração;
+  - o Microsoft Entra ID só aceita o token vindo deste repositório, no ambiente `production`;
+  - a identidade de deploy tem o papel *Website Contributor* **só no Web App**.
+- **Banco sem senha.** A API conecta com `Authentication=Active Directory Managed Identity`. A identidade do Web App tem apenas `db_ddladmin`, `db_datareader` e `db_datawriter` (menor privilégio). O servidor SQL aceita só login do Microsoft Entra.
+- **Configuração por variáveis de ambiente** no App Service: `ConnectionStrings__Default`, `Jwt__Key`, `Cors__AllowedOrigins__0`, `ApiDocs__Enabled` e `Database__MigrateAndSeedOnStartup`. A chave JWT existe só lá.
+- **Migrations no startup** (`Database:MigrateAndSeedOnStartup`): como há uma única instância, é a opção mais simples. Com várias instâncias, elas iriam para um passo separado do pipeline.
+- **Verificação automática:** cada deploy termina chamando `/health` e falha se a API não responder.
+
 ## Estrutura
 
 ```
@@ -260,7 +289,6 @@ rh-manager/
 - Transformar o 500 de uma violação de índice único (em requisições simultâneas) em 409, e proteger o pedido de férias contra corrida com uma transação serializável.
 - Testcontainers com SQL Server na suíte de integração.
 - Testes de ponta a ponta com Playwright.
-- Deploy: front na Vercel e API + banco no Azure.
 
 ## Autor
 
