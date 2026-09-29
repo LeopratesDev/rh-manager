@@ -2,7 +2,7 @@ import { screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { AxiosError } from 'axios';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
-import type { Employee, PagedResult } from '../../api/types';
+import type { EmployeeListItem, PagedResult } from '../../api/types';
 import { adminUser, renderApp, signInAs } from '../../test/renderApp';
 import { listDepartments } from '../departments/departmentsApi';
 import { listEmployees } from './employeesApi';
@@ -18,20 +18,19 @@ vi.mock('../departments/departmentsApi', async (importOriginal) => ({
 
 const listEmployeesMock = vi.mocked(listEmployees);
 
-const ana: Employee = {
+const ana: EmployeeListItem = {
   id: 1,
   name: 'Ana Souza',
   email: 'ana.souza@rhmanager.dev',
-  cpf: '52601815906',
+  maskedCpf: '***.018.159-**',
   position: 'Desenvolvedora Back-end',
-  salary: 7500,
   hireDate: '2021-03-01',
   status: 'Active',
   departmentId: 1,
   departmentName: 'Tecnologia',
 };
 
-function page(items: Employee[], totalItems = items.length): PagedResult<Employee> {
+function page(items: EmployeeListItem[], totalItems = items.length): PagedResult<EmployeeListItem> {
   return { items, page: 1, pageSize: 10, totalItems, totalPages: Math.ceil(totalItems / 10) };
 }
 
@@ -43,14 +42,14 @@ describe('EmployeesPage', () => {
     vi.mocked(listDepartments).mockResolvedValue([{ id: 1, name: 'Tecnologia', employeeCount: 1 }]);
   });
 
-  it('lists employees with formatted CPF, salary and date', async () => {
+  it('lists employees with masked CPF, no salary and formatted date', async () => {
     listEmployeesMock.mockResolvedValue(page([ana], 21));
 
     renderApp('/employees');
 
     expect(await screen.findByText('Ana Souza')).toBeInTheDocument();
-    expect(screen.getByText('526.018.159-06')).toBeInTheDocument();
-    expect(screen.getByText(/R\$\s?7\.500,00/)).toBeInTheDocument();
+    expect(screen.getByText('***.018.159-**')).toBeInTheDocument();
+    expect(screen.queryByRole('columnheader', { name: 'Salário' })).not.toBeInTheDocument();
     expect(screen.getByText('01/03/2021')).toBeInTheDocument();
     expect(screen.getByText('Página 1 de 3')).toBeInTheDocument();
   });

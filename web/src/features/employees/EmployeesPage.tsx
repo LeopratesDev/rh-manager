@@ -3,11 +3,11 @@ import { useState } from 'react';
 import { Link } from 'react-router';
 import { toast } from 'sonner';
 import { getErrorMessage } from '../../api/errors';
-import type { Employee, EmployeeStatus } from '../../api/types';
+import type { EmployeeListItem, EmployeeStatus } from '../../api/types';
 import { ConfirmDialog } from '../../components/ConfirmDialog';
 import { PageHeader } from '../../components/PageHeader';
 import { EmptyState, ErrorState, LoadingState } from '../../components/QueryStates';
-import { formatCpf, formatCurrency, formatDate } from '../../lib/format';
+import { formatDate } from '../../lib/format';
 import { useDebouncedValue } from '../../lib/useDebouncedValue';
 import { departmentsKey, listDepartments } from '../departments/departmentsApi';
 import { deactivateEmployee, employeesKey, listEmployees } from './employeesApi';
@@ -24,7 +24,7 @@ export function EmployeesPage() {
   const [search, setSearch] = useState('');
   const [departmentId, setDepartmentId] = useState<number | null>(null);
   const [status, setStatus] = useState<EmployeeStatus | null>(null);
-  const [toDeactivate, setToDeactivate] = useState<Employee | null>(null);
+  const [toDeactivate, setToDeactivate] = useState<EmployeeListItem | null>(null);
   const debouncedSearch = useDebouncedValue(search);
 
   const filters = { page, pageSize: PAGE_SIZE, search: debouncedSearch, departmentId, status };
@@ -115,14 +115,13 @@ export function EmployeesPage() {
             <table className="w-full text-left text-sm">
               <thead className="border-b border-linha text-tinta-suave">
                 <tr>
-                  <th className="px-4 py-3 font-medium">Nome</th>
-                  <th className="px-4 py-3 font-medium">CPF</th>
-                  <th className="px-4 py-3 font-medium">Cargo</th>
-                  <th className="px-4 py-3 font-medium">Departamento</th>
-                  <th className="px-4 py-3 font-medium">Salário</th>
-                  <th className="px-4 py-3 font-medium">Admissão</th>
-                  <th className="px-4 py-3 font-medium">Status</th>
-                  <th className="px-4 py-3" />
+                  <th className="px-3 py-3 font-medium">Nome</th>
+                  <th className="px-3 py-3 font-medium">CPF</th>
+                  <th className="px-3 py-3 font-medium">Cargo</th>
+                  <th className="px-3 py-3 font-medium">Departamento</th>
+                  <th className="px-3 py-3 font-medium">Admissão</th>
+                  <th className="px-3 py-3 font-medium">Status</th>
+                  <th className="px-3 py-3" />
                 </tr>
               </thead>
               <tbody className="divide-y divide-linha">
@@ -131,33 +130,33 @@ export function EmployeesPage() {
                     key={employee.id}
                     className={employee.status === 'Inactive' ? 'text-tinta-suave' : undefined}
                   >
-                    <td className="px-4 py-3">
+                    <td className="px-3 py-3">
                       <p className="font-medium text-tinta">{employee.name}</p>
                       <p className="text-tinta-suave">{employee.email}</p>
                     </td>
-                    <td className="px-4 py-3 whitespace-nowrap">{formatCpf(employee.cpf)}</td>
-                    <td className="px-4 py-3">{employee.position}</td>
-                    <td className="px-4 py-3">{employee.departmentName}</td>
-                    <td className="px-4 py-3 whitespace-nowrap">
-                      {formatCurrency(employee.salary)}
-                    </td>
-                    <td className="px-4 py-3">{formatDate(employee.hireDate)}</td>
-                    <td className="px-4 py-3">
+                    <td className="px-3 py-3 whitespace-nowrap">{employee.maskedCpf}</td>
+                    <td className="px-3 py-3">{employee.position}</td>
+                    <td className="px-3 py-3">{employee.departmentName}</td>
+                    <td className="px-3 py-3">{formatDate(employee.hireDate)}</td>
+                    <td className="px-3 py-3">
                       <span
                         className={`text-xs font-semibold ${employee.status === 'Active' ? 'text-carimbo-verde' : 'text-tinta-suave'}`}
                       >
                         {employee.status === 'Active' ? 'Ativo' : 'Inativo'}
                       </span>
                     </td>
-                    <td className="px-4 py-3">
+                    <td className="px-3 py-3">
                       <div className="flex justify-end gap-2">
-                        <Link to={`/employees/${employee.id}/edit`} className="btn-secondary">
+                        <Link
+                          to={`/employees/${employee.id}/edit`}
+                          className="btn-secondary px-2.5 py-1 text-xs"
+                        >
                           Editar
                         </Link>
                         {employee.status === 'Active' && (
                           <button
                             type="button"
-                            className="btn-secondary"
+                            className="btn-secondary px-2.5 py-1 text-xs"
                             onClick={() => setToDeactivate(employee)}
                             disabled={deactivate.isPending}
                           >
