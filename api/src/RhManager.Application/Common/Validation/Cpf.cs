@@ -4,6 +4,13 @@ public static class Cpf
 {
     public static string OnlyDigits(string value) => new(value.Where(char.IsAsciiDigit).ToArray());
 
+    /// <summary>Mostra só os 6 dígitos do meio (ex.: ***.018.159-**), para listagens.</summary>
+    public static string Mask(string value)
+    {
+        var digits = OnlyDigits(value);
+        return digits.Length == 11 ? $"***.{digits[3..6]}.{digits[6..9]}-**" : "***.***.***-**";
+    }
+
     public static bool IsValid(string? value)
     {
         if (string.IsNullOrWhiteSpace(value))

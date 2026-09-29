@@ -14,7 +14,7 @@ namespace RhManager.Api.Controllers;
 public class EmployeesController(IEmployeeService employeeService) : ControllerBase
 {
     [HttpGet]
-    [ProducesResponseType<PagedResult<EmployeeResponse>>(StatusCodes.Status200OK)]
+    [ProducesResponseType<PagedResult<EmployeeListItemResponse>>(StatusCodes.Status200OK)]
     [ProducesResponseType<ValidationProblemDetails>(StatusCodes.Status400BadRequest)]
     public async Task<IActionResult> List([FromQuery] EmployeeQuery query, CancellationToken cancellationToken) =>
         Ok(await employeeService.ListAsync(query, cancellationToken));

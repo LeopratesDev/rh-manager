@@ -14,6 +14,17 @@ public record EmployeeResponse(
     int DepartmentId,
     string DepartmentName);
 
+public record EmployeeListItemResponse(
+    int Id,
+    string Name,
+    string Email,
+    string MaskedCpf,
+    string Position,
+    DateOnly HireDate,
+    EmployeeStatus Status,
+    int DepartmentId,
+    string DepartmentName);
+
 public record SaveEmployeeRequest(
     string Name,
     string Email,

@@ -12,7 +12,7 @@ namespace RhManager.Application.Employees;
 
 public interface IEmployeeService
 {
-    Task<PagedResult<EmployeeResponse>> ListAsync(EmployeeQuery query, CancellationToken cancellationToken);
+    Task<PagedResult<EmployeeListItemResponse>> ListAsync(EmployeeQuery query, CancellationToken cancellationToken);
     Task<EmployeeResponse> GetByIdAsync(int id, CancellationToken cancellationToken);
     Task<EmployeeResponse> CreateAsync(SaveEmployeeRequest request, CancellationToken cancellationToken);
     Task UpdateAsync(int id, SaveEmployeeRequest request, CancellationToken cancellationToken);
@@ -29,7 +29,7 @@ public class EmployeeService(
             e.Id, e.Name, e.Email, e.Cpf, e.Position, e.Salary, e.HireDate, e.Status,
             e.DepartmentId, e.Department!.Name);
 
-    public async Task<PagedResult<EmployeeResponse>> ListAsync(EmployeeQuery query, CancellationToken cancellationToken)
+    public async Task<PagedResult<EmployeeListItemResponse>> ListAsync(EmployeeQuery query, CancellationToken cancellationToken)
     {
         await queryValidator.ValidateAndThrowAsync(query, cancellationToken);
 
@@ -55,10 +55,12 @@ public class EmployeeService(
             .OrderBy(e => e.Name)
             .Skip((query.Page - 1) * query.PageSize)
             .Take(query.PageSize)
-            .Select(_toResponse)
+            .Select(e => new EmployeeListItemResponse(
+                e.Id, e.Name, e.Email, Cpf.Mask(e.Cpf), e.Position, e.HireDate, e.Status,
+                e.DepartmentId, e.Department!.Name))
             .ToListAsync(cancellationToken);
 
-        return new PagedResult<EmployeeResponse>(items, query.Page, query.PageSize, totalItems);
+        return new PagedResult<EmployeeListItemResponse>(items, query.Page, query.PageSize, totalItems);
     }
 
     public async Task<EmployeeResponse> GetByIdAsync(int id, CancellationToken cancellationToken) =>
