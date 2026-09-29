@@ -4,6 +4,7 @@ import { Link } from 'react-router';
 import { toast } from 'sonner';
 import { getErrorMessage } from '../../api/errors';
 import type { Employee, EmployeeStatus } from '../../api/types';
+import { ConfirmDialog } from '../../components/ConfirmDialog';
 import { PageHeader } from '../../components/PageHeader';
 import { EmptyState, ErrorState, LoadingState } from '../../components/QueryStates';
 import { formatCpf, formatCurrency, formatDate } from '../../lib/format';
@@ -13,12 +14,17 @@ import { deactivateEmployee, employeesKey, listEmployees } from './employeesApi'
 
 const PAGE_SIZE = 10;
 
+function countLabel(total: number): string {
+  return total === 1 ? '1 funcionário' : `${total} funcionários`;
+}
+
 export function EmployeesPage() {
   const queryClient = useQueryClient();
   const [page, setPage] = useState(1);
   const [search, setSearch] = useState('');
   const [departmentId, setDepartmentId] = useState<number | null>(null);
   const [status, setStatus] = useState<EmployeeStatus | null>(null);
+  const [toDeactivate, setToDeactivate] = useState<Employee | null>(null);
   const debouncedSearch = useDebouncedValue(search);
 
   const filters = { page, pageSize: PAGE_SIZE, search: debouncedSearch, departmentId, status };
@@ -33,6 +39,7 @@ export function EmployeesPage() {
     mutationFn: deactivateEmployee,
     onSuccess: () => {
       toast.success('Funcionário desativado.');
+      setToDeactivate(null);
       queryClient.invalidateQueries({ queryKey: employeesKey });
     },
     onError: (error) => toast.error(getErrorMessage(error)),
@@ -43,17 +50,11 @@ export function EmployeesPage() {
     setPage(1);
   };
 
-  const confirmDeactivate = (employee: Employee) => {
-    if (window.confirm(`Desativar ${employee.name}?`)) {
-      deactivate.mutate(employee.id);
-    }
-  };
-
   return (
     <>
       <PageHeader
         title="Funcionários"
-        description={employees.data ? `${employees.data.totalItems} encontrado(s)` : undefined}
+        description={employees.data ? countLabel(employees.data.totalItems) : undefined}
         actions={
           <Link to="/employees/new" className="btn-primary">
             Novo funcionário
@@ -61,7 +62,7 @@ export function EmployeesPage() {
         }
       />
 
-      <div className="mb-4 grid gap-3 sm:grid-cols-[1fr_200px_160px]">
+      <div className="mb-4 grid gap-3 sm:grid-cols-[1fr_240px_170px]">
         <input
           type="search"
           aria-label="Buscar por nome"
@@ -110,9 +111,9 @@ export function EmployeesPage() {
       )}
       {employees.isSuccess && employees.data.items.length > 0 && (
         <>
-          <div className="overflow-x-auto rounded-lg bg-white shadow-sm">
+          <div className="overflow-x-auto panel">
             <table className="w-full text-left text-sm">
-              <thead className="border-b border-slate-200 text-slate-500">
+              <thead className="border-b border-linha text-tinta-suave">
                 <tr>
                   <th className="px-4 py-3 font-medium">Nome</th>
                   <th className="px-4 py-3 font-medium">CPF</th>
@@ -124,12 +125,15 @@ export function EmployeesPage() {
                   <th className="px-4 py-3" />
                 </tr>
               </thead>
-              <tbody className="divide-y divide-slate-100">
+              <tbody className="divide-y divide-linha">
                 {employees.data.items.map((employee) => (
-                  <tr key={employee.id}>
+                  <tr
+                    key={employee.id}
+                    className={employee.status === 'Inactive' ? 'text-tinta-suave' : undefined}
+                  >
                     <td className="px-4 py-3">
-                      <p className="font-medium text-slate-900">{employee.name}</p>
-                      <p className="text-slate-500">{employee.email}</p>
+                      <p className="font-medium text-tinta">{employee.name}</p>
+                      <p className="text-tinta-suave">{employee.email}</p>
                     </td>
                     <td className="px-4 py-3 whitespace-nowrap">{formatCpf(employee.cpf)}</td>
                     <td className="px-4 py-3">{employee.position}</td>
@@ -140,7 +144,7 @@ export function EmployeesPage() {
                     <td className="px-4 py-3">{formatDate(employee.hireDate)}</td>
                     <td className="px-4 py-3">
                       <span
-                        className={`rounded-full px-2 py-0.5 text-xs ${employee.status === 'Active' ? 'bg-emerald-50 text-emerald-700' : 'bg-slate-100 text-slate-600'}`}
+                        className={`text-xs font-semibold ${employee.status === 'Active' ? 'text-carimbo-verde' : 'text-tinta-suave'}`}
                       >
                         {employee.status === 'Active' ? 'Ativo' : 'Inativo'}
                       </span>
@@ -154,7 +158,7 @@ export function EmployeesPage() {
                           <button
                             type="button"
                             className="btn-secondary"
-                            onClick={() => confirmDeactivate(employee)}
+                            onClick={() => setToDeactivate(employee)}
                             disabled={deactivate.isPending}
                           >
                             Desativar
@@ -169,7 +173,7 @@ export function EmployeesPage() {
           </div>
           <nav
             aria-label="Paginação"
-            className="mt-4 flex items-center justify-between text-sm text-slate-600"
+            className="mt-4 flex items-center justify-between text-sm text-tinta-suave"
           >
             <span>
               Página {employees.data.page} de {Math.max(employees.data.totalPages, 1)}
@@ -195,6 +199,15 @@ export function EmployeesPage() {
           </nav>
         </>
       )}
+      <ConfirmDialog
+        open={toDeactivate !== null}
+        title={`Desativar ${toDeactivate?.name ?? ''}?`}
+        description="A pessoa sai da lista de ativos e não consegue mais pedir férias. O histórico é mantido e você pode reativar editando o cadastro."
+        confirmLabel="Desativar funcionário"
+        isPending={deactivate.isPending}
+        onConfirm={() => toDeactivate && deactivate.mutate(toDeactivate.id)}
+        onCancel={() => setToDeactivate(null)}
+      />
     </>
   );
 }

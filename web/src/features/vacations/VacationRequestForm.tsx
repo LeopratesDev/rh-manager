@@ -67,7 +67,7 @@ export function VacationRequestForm({ isSubmitting, onSubmit }: VacationRequestF
     <form
       noValidate
       onSubmit={handleSubmit((values) => submit(values).catch(() => undefined))}
-      className="grid gap-4 rounded-lg bg-white p-4 shadow-sm sm:grid-cols-[1fr_1fr_auto]"
+      className="grid gap-4 panel p-4 sm:grid-cols-[1fr_1fr_auto]"
     >
       <FormField label="Início" error={errors.startDate?.message}>
         <input type="date" min={todayIso()} {...register('startDate')} />

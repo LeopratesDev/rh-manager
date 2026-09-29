@@ -7,9 +7,9 @@ import { dashboardKey, getDashboard } from './dashboardApi';
 
 function StatCard({ label, value, to }: { label: string; value: number; to: string }) {
   return (
-    <Link to={to} className="rounded-lg bg-white p-5 shadow-sm hover:ring-2 hover:ring-slate-200">
-      <p className="text-sm text-slate-500">{label}</p>
-      <p className="mt-1 text-3xl font-semibold text-slate-900">{value}</p>
+    <Link to={to} className="panel p-5 hover:ring-2 hover:border-ctps-claro">
+      <p className="text-sm text-tinta-suave">{label}</p>
+      <p className="mt-1 text-4xl font-extrabold text-ctps tabular-nums">{value}</p>
     </Link>
   );
 }
@@ -43,22 +43,20 @@ export function DashboardPage() {
           </div>
 
           <div className="grid gap-6 lg:grid-cols-2">
-            <section className="rounded-lg bg-white p-5 shadow-sm">
-              <h2 className="mb-4 font-semibold text-slate-900">
+            <section className="panel p-5">
+              <h2 className="mb-4 font-semibold text-tinta">
                 Funcionários ativos por departamento
               </h2>
               <ul className="space-y-3">
                 {dashboard.data.employeesByDepartment.map((department) => (
                   <li key={department.departmentId}>
                     <div className="mb-1 flex justify-between text-sm">
-                      <span className="text-slate-700">{department.departmentName}</span>
-                      <span className="font-medium text-slate-900">
-                        {department.activeEmployees}
-                      </span>
+                      <span className="text-tinta">{department.departmentName}</span>
+                      <span className="font-medium text-tinta">{department.activeEmployees}</span>
                     </div>
-                    <div className="h-2 rounded-full bg-slate-100">
+                    <div className="h-2 rounded-full bg-papel">
                       <div
-                        className="h-2 rounded-full bg-slate-800"
+                        className="h-2 rounded-full bg-ctps"
                         style={{
                           width: `${dashboard.data.totalActiveEmployees ? (department.activeEmployees / dashboard.data.totalActiveEmployees) * 100 : 0}%`,
                         }}
@@ -69,16 +67,16 @@ export function DashboardPage() {
               </ul>
             </section>
 
-            <section className="rounded-lg bg-white p-5 shadow-sm">
-              <h2 className="mb-4 font-semibold text-slate-900">Próximas férias aprovadas</h2>
+            <section className="panel p-5">
+              <h2 className="mb-4 font-semibold text-tinta">Próximas férias aprovadas</h2>
               {dashboard.data.upcomingVacations.length === 0 ? (
                 <EmptyState message="Nenhuma férias aprovada nos próximos dias." />
               ) : (
-                <ul className="divide-y divide-slate-100">
+                <ul className="divide-y divide-linha">
                   {dashboard.data.upcomingVacations.map((vacation) => (
                     <li key={vacation.id} className="flex justify-between gap-3 py-2 text-sm">
-                      <span className="text-slate-900">{vacation.employeeName}</span>
-                      <span className="text-slate-500">
+                      <span className="text-tinta">{vacation.employeeName}</span>
+                      <span className="text-tinta-suave">
                         {formatDate(vacation.startDate)} a {formatDate(vacation.endDate)}
                       </span>
                     </li>

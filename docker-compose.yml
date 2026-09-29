@@ -27,6 +27,7 @@ services:
       ConnectionStrings__Default: Server=sqlserver,1433;Database=RhManager;User Id=sa;Password=${MSSQL_SA_PASSWORD};TrustServerCertificate=True
       Jwt__Key: ${JWT_KEY:?Defina JWT_KEY no arquivo .env}
       Cors__AllowedOrigins__0: http://localhost:3000
+      Cors__AllowedOrigins__1: http://localhost:5173
     ports:
       - "5000:8080"
 
