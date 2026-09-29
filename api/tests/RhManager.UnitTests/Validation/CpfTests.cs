@@ -31,4 +31,18 @@ public class CpfTests
     {
         Cpf.OnlyDigits("526.018.159-06").Should().Be("52601815906");
     }
+
+    [Theory]
+    [InlineData("52601815906", "***.018.159-**")]
+    [InlineData("526.018.159-06", "***.018.159-**")]
+    public void Mask_WithElevenDigits_KeepsOnlyTheMiddleDigits(string cpf, string expected)
+    {
+        Cpf.Mask(cpf).Should().Be(expected);
+    }
+
+    [Fact]
+    public void Mask_WithInvalidLength_HidesEverything()
+    {
+        Cpf.Mask("123").Should().Be("***.***.***-**");
+    }
 }
