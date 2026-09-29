@@ -7,6 +7,7 @@ import { z } from 'zod';
 import { getErrorMessage } from '../../api/errors';
 import type { Department } from '../../api/types';
 import { FormField } from '../../components/FormField';
+import { ConfirmDialog } from '../../components/ConfirmDialog';
 import { PageHeader } from '../../components/PageHeader';
 import { EmptyState, ErrorState, LoadingState } from '../../components/QueryStates';
 import {
@@ -26,6 +27,7 @@ type DepartmentForm = z.infer<typeof departmentSchema>;
 export function DepartmentsPage() {
   const queryClient = useQueryClient();
   const [editing, setEditing] = useState<Department | null>(null);
+  const [toDelete, setToDelete] = useState<Department | null>(null);
   const departments = useQuery({ queryKey: departmentsKey, queryFn: listDepartments });
 
   const {
@@ -59,19 +61,19 @@ export function DepartmentsPage() {
 
   const remove = useMutation({
     mutationFn: deleteDepartment,
-    onSuccess: () => onSaved('Departamento excluído.'),
-    onError: (error) => toast.error(getErrorMessage(error)),
+    onSuccess: () => {
+      setToDelete(null);
+      onSaved('Departamento excluído.');
+    },
+    onError: (error) => {
+      setToDelete(null);
+      toast.error(getErrorMessage(error));
+    },
   });
 
   const startEditing = (department: Department) => {
     setEditing(department);
     reset({ name: department.name });
-  };
-
-  const confirmDelete = (department: Department) => {
-    if (window.confirm(`Excluir o departamento "${department.name}"?`)) {
-      remove.mutate(department.id);
-    }
   };
 
   return (
@@ -81,7 +83,7 @@ export function DepartmentsPage() {
       <form
         noValidate
         onSubmit={handleSubmit((values) => save.mutate(values))}
-        className="mb-6 flex flex-wrap items-start gap-3 rounded-lg bg-white p-4 shadow-sm"
+        className="mb-6 flex flex-wrap items-start gap-3 panel p-4"
       >
         <div className="min-w-60 flex-1">
           <FormField
@@ -118,15 +120,17 @@ export function DepartmentsPage() {
         <EmptyState message="Nenhum departamento cadastrado." />
       )}
       {departments.isSuccess && departments.data.length > 0 && (
-        <ul className="divide-y divide-slate-200 rounded-lg bg-white shadow-sm">
+        <ul className="divide-y divide-linha panel">
           {departments.data.map((department) => (
             <li
               key={department.id}
               className="flex flex-wrap items-center justify-between gap-3 px-4 py-3"
             >
               <div>
-                <p className="font-medium text-slate-900">{department.name}</p>
-                <p className="text-sm text-slate-500">{department.employeeCount} funcionário(s)</p>
+                <p className="font-medium text-tinta">{department.name}</p>
+                <p className="text-sm text-tinta-suave">
+                  {department.employeeCount} funcionário(s)
+                </p>
               </div>
               <div className="flex gap-2">
                 <button
@@ -139,7 +143,7 @@ export function DepartmentsPage() {
                 <button
                   type="button"
                   className="btn-secondary"
-                  onClick={() => confirmDelete(department)}
+                  onClick={() => setToDelete(department)}
                   disabled={remove.isPending}
                 >
                   Excluir
@@ -149,6 +153,15 @@ export function DepartmentsPage() {
           ))}
         </ul>
       )}
+      <ConfirmDialog
+        open={toDelete !== null}
+        title={`Excluir ${toDelete?.name ?? ''}?`}
+        description="Só é possível excluir um departamento sem funcionários. Essa ação não pode ser desfeita."
+        confirmLabel="Excluir departamento"
+        isPending={remove.isPending}
+        onConfirm={() => toDelete && remove.mutate(toDelete.id)}
+        onCancel={() => setToDelete(null)}
+      />
     </>
   );
 }
