@@ -51,7 +51,8 @@ export function LoginPage() {
             Férias pedidas, aprovadas e registradas.
           </h1>
           <p className="mt-4 text-white/75">
-            O colaborador pede, o RH aprova ou rejeita com motivo, e cada decisão fica registrada.
+            O colaborador pede, o RH decide vendo quem mais do setor estará fora, e cada decisão
+            fica registrada.
           </p>
         </div>
         <p className="text-xs text-white/50">Projeto de portfólio · dados fictícios</p>
