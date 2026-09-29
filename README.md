@@ -27,8 +27,8 @@ Use os [usuários de demonstração](#usuários-de-demonstração). O primeiro a
 
 ## Em números
 
-- **21 endpoints REST**, com erros padronizados em ProblemDetails (RFC 7807).
-- **146 testes automatizados:** 32 unitários e 68 de integração na API, mais 46 no front.
+- **22 endpoints REST**, com erros padronizados em ProblemDetails (RFC 7807).
+- **172 testes automatizados:** 35 unitários e 77 de integração na API, mais 60 no front.
 - **5 telas:** Login, Dashboard, Funcionários, Departamentos e Férias.
 - **3 jobs de CI** em cada push e PR (API, Web e Docker), e **deploy contínuo** para o Azure e o GitHub Pages.
 
@@ -47,7 +47,7 @@ Use os [usuários de demonstração](#usuários-de-demonstração). O primeiro a
   - `Admin` (RH) pode tudo;
   - `Employee` (colaborador) vê o próprio perfil e pede férias.
 - **Departamentos:** CRUD. A exclusão é bloqueada quando o departamento tem funcionários.
-- **Funcionários:** CRUD com e-mail e CPF únicos e CPF validado pelos dígitos verificadores. A listagem é paginada, com busca por nome e filtro por departamento e status. Excluir apenas inativa o funcionário, para preservar o histórico.
+- **Funcionários:** CRUD com e-mail e CPF únicos e CPF validado pelos dígitos verificadores. A listagem é paginada, com busca por nome e filtro por departamento e status. Excluir apenas inativa o funcionário, para preservar o histórico. A listagem mostra o CPF mascarado (`***.018.159-**`) e não traz o salário, por minimização de dados (LGPD); os dados completos só aparecem na tela de edição.
 - **Férias**, com fluxo Pendente → Aprovada/Rejeitada. Regras:
   - de 5 a 30 dias por solicitação;
   - sem sobrepor outra solicitação pendente ou aprovada do mesmo funcionário;
@@ -191,6 +191,7 @@ Todas as chaves estrangeiras usam `ON DELETE RESTRICT`: apagar um departamento n
 | GET | `/api/vacations/mine` | colaborador | 200 |
 | GET | `/api/vacations?status=&employeeId=` | Admin | 200 |
 | GET | `/api/vacations/{id}` | Admin ou o dono | 200, 403, 404 |
+| GET | `/api/vacations/{id}/conflicts` | Admin | 200 (colegas do setor ausentes no período), 404 |
 | POST | `/api/vacations/{id}/approve` | Admin | 204, 404, 409 |
 | POST | `/api/vacations/{id}/reject` | Admin | 204, 400 (sem motivo), 404, 409 |
 | GET | `/api/dashboard` | Admin | 200 |
@@ -201,8 +202,8 @@ Documentação completa, com schemas e o botão para colar o token, em `/scalar/
 ## Testes
 
 ```bash
-cd api && dotnet test          # 32 unitários + 68 de integração
-cd web && npm test             # 46 testes
+cd api && dotnet test          # 35 unitários + 77 de integração
+cd web && npm test             # 60 testes
 ```
 
 - **Unitários (xUnit):** cada regra de férias com pelo menos 1 caso de sucesso e 1 de falha, as transições de status, a validação de CPF e os validadores.

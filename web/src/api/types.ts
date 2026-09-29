@@ -50,6 +50,18 @@ export interface Employee {
   departmentName: string;
 }
 
+export interface EmployeeListItem {
+  id: number;
+  name: string;
+  email: string;
+  maskedCpf: string;
+  position: string;
+  hireDate: string;
+  status: EmployeeStatus;
+  departmentId: number;
+  departmentName: string;
+}
+
 export interface SaveEmployee {
   name: string;
   email: string;

@@ -122,7 +122,7 @@ public class EmployeesEndpointsTests(ApiFactory factory) : IClassFixture<ApiFact
             await TestData.CreateEmployeeAsync(_client, TestData.NewEmployeeRequest(department.Id));
         }
 
-        var page = await _client.GetFromJsonAsync<PagedResult<EmployeeResponse>>(
+        var page = await _client.GetFromJsonAsync<PagedResult<EmployeeListItemResponse>>(
             $"/api/employees?departmentId={department.Id}&page=2&pageSize=2", JsonOptions.Default);
 
         page!.Items.Should().HaveCount(2);
@@ -141,7 +141,7 @@ public class EmployeesEndpointsTests(ApiFactory factory) : IClassFixture<ApiFact
         await TestData.CreateEmployeeAsync(_client, TestData.NewEmployeeRequest(department.Id, "Outra Pessoa"));
         await _client.DeleteAsync($"/api/employees/{inactive.Id}");
 
-        var page = await _client.GetFromJsonAsync<PagedResult<EmployeeResponse>>(
+        var page = await _client.GetFromJsonAsync<PagedResult<EmployeeListItemResponse>>(
             $"/api/employees?search={marker}&status=Active", JsonOptions.Default);
 
         page!.Items.Should().ContainSingle().Which.Id.Should().Be(active.Id);
@@ -155,5 +155,30 @@ public class EmployeesEndpointsTests(ApiFactory factory) : IClassFixture<ApiFact
         var response = await _client.GetAsync($"/api/employees?{queryString}");
 
         response.StatusCode.Should().Be(HttpStatusCode.BadRequest);
+    }
+
+    [Fact]
+    public async Task List_NeverExposesSalaryOrFullCpf()
+    {
+        var department = await TestData.CreateDepartmentAsync(_client);
+        var employee = await TestData.CreateEmployeeAsync(_client, TestData.NewEmployeeRequest(department.Id));
+
+        var json = await _client.GetStringAsync($"/api/employees?departmentId={department.Id}");
+
+        json.Should().NotContain("salary").And.NotContain(employee.Cpf);
+        json.Should().Contain($"***.{employee.Cpf[3..6]}.{employee.Cpf[6..9]}-**");
+    }
+
+    [Fact]
+    public async Task GetById_StillReturnsFullCpfAndSalaryForEditing()
+    {
+        var department = await TestData.CreateDepartmentAsync(_client);
+        var request = TestData.NewEmployeeRequest(department.Id);
+        var created = await TestData.CreateEmployeeAsync(_client, request);
+
+        var employee = await _client.GetFromJsonAsync<EmployeeResponse>($"/api/employees/{created.Id}", JsonOptions.Default);
+
+        employee!.Cpf.Should().Be(request.Cpf);
+        employee.Salary.Should().Be(request.Salary);
     }
 }

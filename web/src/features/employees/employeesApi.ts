@@ -1,5 +1,11 @@
 import { apiClient } from '../../api/client';
-import type { Employee, EmployeeStatus, PagedResult, SaveEmployee } from '../../api/types';
+import type {
+  Employee,
+  EmployeeListItem,
+  EmployeeStatus,
+  PagedResult,
+  SaveEmployee,
+} from '../../api/types';
 
 export interface EmployeeFilters {
   page: number;
@@ -11,8 +17,10 @@ export interface EmployeeFilters {
 
 export const employeesKey = ['employees'] as const;
 
-export async function listEmployees(filters: EmployeeFilters): Promise<PagedResult<Employee>> {
-  const { data } = await apiClient.get<PagedResult<Employee>>('/api/employees', {
+export async function listEmployees(
+  filters: EmployeeFilters,
+): Promise<PagedResult<EmployeeListItem>> {
+  const { data } = await apiClient.get<PagedResult<EmployeeListItem>>('/api/employees', {
     params: {
       page: filters.page,
       pageSize: filters.pageSize,
