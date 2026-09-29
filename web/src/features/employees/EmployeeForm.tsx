@@ -60,11 +60,7 @@ export function EmployeeForm({
   };
 
   return (
-    <form
-      noValidate
-      onSubmit={handleSubmit(submit)}
-      className="space-y-4 rounded-lg bg-white p-6 shadow-sm"
-    >
+    <form noValidate onSubmit={handleSubmit(submit)} className="space-y-4 panel p-6">
       <div className="grid gap-4 sm:grid-cols-2">
         <FormField label="Nome" error={errors.name?.message}>
           <input type="text" {...register('name')} />

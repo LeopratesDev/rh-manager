@@ -60,7 +60,7 @@ export function VacationApprovals() {
   return (
     <section className="space-y-4">
       <div className="flex flex-wrap items-center justify-between gap-3">
-        <h2 className="text-lg font-semibold text-slate-900">Aprovações</h2>
+        <h2 className="text-lg font-semibold text-tinta">Aprovações</h2>
         <select
           aria-label="Filtrar solicitações por status"
           className="input max-w-48"
@@ -82,18 +82,20 @@ export function VacationApprovals() {
         <EmptyState message="Nenhuma solicitação com esse status." />
       )}
       {vacations.isSuccess && vacations.data.length > 0 && (
-        <ul className="divide-y divide-slate-200 rounded-lg bg-white shadow-sm">
+        <ul className="divide-y divide-linha panel">
           {vacations.data.map((vacation) => (
             <li key={vacation.id} className="space-y-3 px-4 py-3">
               <div className="flex flex-wrap items-center justify-between gap-3">
                 <div>
-                  <p className="font-medium text-slate-900">{vacation.employeeName}</p>
-                  <p className="text-sm text-slate-500">
+                  <p className="font-medium text-tinta">{vacation.employeeName}</p>
+                  <p className="text-sm text-tinta-suave">
                     {formatDate(vacation.startDate)} a {formatDate(vacation.endDate)} (
                     {vacation.days} dias)
                   </p>
                   {vacation.rejectionReason && (
-                    <p className="text-sm text-red-700">Motivo: {vacation.rejectionReason}</p>
+                    <p className="text-sm text-carimbo-vermelho">
+                      Motivo: {vacation.rejectionReason}
+                    </p>
                   )}
                 </div>
                 <div className="flex items-center gap-2">
@@ -121,10 +123,10 @@ export function VacationApprovals() {
               </div>
 
               {rejecting?.id === vacation.id && (
-                <div className="space-y-2 rounded-md bg-slate-50 p-3">
+                <div className="space-y-2 rounded-md bg-papel p-3">
                   <label
                     htmlFor={`reason-${vacation.id}`}
-                    className="block text-sm font-medium text-slate-700"
+                    className="block text-sm font-medium text-tinta"
                   >
                     Motivo da rejeição
                   </label>
@@ -137,7 +139,7 @@ export function VacationApprovals() {
                     aria-invalid={reasonError ? true : undefined}
                     onChange={(event) => setReason(event.target.value)}
                   />
-                  {reasonError && <p className="text-sm text-red-600">{reasonError}</p>}
+                  {reasonError && <p className="text-sm text-carimbo-vermelho">{reasonError}</p>}
                   <div className="flex gap-2">
                     <button
                       type="button"

@@ -24,7 +24,7 @@ export function MyVacations() {
 
   return (
     <section className="space-y-4">
-      <h2 className="text-lg font-semibold text-slate-900">Minhas solicitações</h2>
+      <h2 className="text-lg font-semibold text-tinta">Minhas solicitações</h2>
       <VacationRequestForm isSubmitting={request.isPending} onSubmit={request.mutateAsync} />
 
       {vacations.isPending && <LoadingState />}
@@ -35,21 +35,23 @@ export function MyVacations() {
         <EmptyState message="Você ainda não fez nenhuma solicitação de férias." />
       )}
       {vacations.isSuccess && vacations.data.length > 0 && (
-        <ul className="divide-y divide-slate-200 rounded-lg bg-white shadow-sm">
+        <ul className="divide-y divide-linha panel">
           {vacations.data.map((vacation) => (
             <li
               key={vacation.id}
               className="flex flex-wrap items-center justify-between gap-3 px-4 py-3"
             >
               <div>
-                <p className="font-medium text-slate-900">
+                <p className="font-medium text-tinta">
                   {formatDate(vacation.startDate)} a {formatDate(vacation.endDate)}
-                  <span className="ml-2 text-sm font-normal text-slate-500">
+                  <span className="ml-2 text-sm font-normal text-tinta-suave">
                     ({vacation.days} dias)
                   </span>
                 </p>
                 {vacation.rejectionReason && (
-                  <p className="text-sm text-red-700">Motivo: {vacation.rejectionReason}</p>
+                  <p className="text-sm text-carimbo-vermelho">
+                    Motivo: {vacation.rejectionReason}
+                  </p>
                 )}
               </div>
               <VacationStatusBadge status={vacation.status} />

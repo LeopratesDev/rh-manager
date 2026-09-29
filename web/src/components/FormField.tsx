@@ -17,7 +17,7 @@ export function FormField({ label, error, children }: FormFieldProps) {
 
   return (
     <div className="space-y-1">
-      <label htmlFor={id} className="block text-sm font-medium text-slate-700">
+      <label htmlFor={id} className="block text-sm font-medium text-tinta">
         {label}
       </label>
       {cloneElement(children, {
@@ -27,7 +27,7 @@ export function FormField({ label, error, children }: FormFieldProps) {
         'aria-describedby': error ? errorId : undefined,
       })}
       {error && (
-        <p id={errorId} className="text-sm text-red-600">
+        <p id={errorId} className="text-sm text-carimbo-vermelho">
           {error}
         </p>
       )}
