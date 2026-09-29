@@ -1,15 +1,91 @@
 @import 'tailwindcss';
 
+/*
+ * Identidade "Carteira de Trabalho": o azul-marinho e o dourado da CTPS,
+ * papel frio no fundo e as cores de tinta de carimbo para os status.
+ */
+@theme {
+  --font-sans: 'Schibsted Grotesk', ui-sans-serif, system-ui, sans-serif;
+
+  --color-ctps: #1e3557;
+  --color-ctps-escuro: #152743;
+  --color-ctps-claro: #2c4a75;
+  --color-ouro: #c9a24a;
+  --color-papel: #f4f6f5;
+  --color-linha: #dde3e1;
+  --color-tinta: #1b2430;
+  --color-tinta-suave: #5a6573;
+
+  --color-carimbo-verde: #2e7d55;
+  --color-carimbo-vermelho: #b23a2e;
+  --color-carimbo-ocre: #9a6a12;
+}
+
+@layer base {
+  body {
+    @apply bg-papel font-sans text-tinta antialiased;
+  }
+
+  :focus-visible {
+    @apply outline-2 outline-offset-2 outline-ouro;
+  }
+}
+
 @layer components {
   .input {
-    @apply w-full rounded-md border border-slate-300 bg-white px-3 py-2 text-sm text-slate-900 outline-none focus:border-slate-500 focus:ring-2 focus:ring-slate-200 aria-invalid:border-red-500;
+    @apply w-full rounded-md border border-linha bg-white px-3 py-2 text-sm text-tinta outline-none focus:border-ctps-claro focus:ring-2 focus:ring-ctps/15 aria-invalid:border-carimbo-vermelho;
   }
 
   .btn-primary {
-    @apply rounded-md bg-slate-900 px-4 py-2 text-sm font-medium text-white hover:bg-slate-700 disabled:cursor-not-allowed disabled:opacity-60;
+    @apply inline-flex items-center justify-center rounded-md bg-ctps px-4 py-2 text-sm font-semibold text-white hover:bg-ctps-claro disabled:cursor-not-allowed disabled:opacity-60;
   }
 
   .btn-secondary {
-    @apply rounded-md border border-slate-300 bg-white px-3 py-1.5 text-sm text-slate-700 hover:bg-slate-100 disabled:opacity-60;
+    @apply inline-flex items-center justify-center rounded-md border border-linha bg-white px-3 py-1.5 text-sm font-medium text-tinta hover:border-ctps-claro hover:text-ctps disabled:opacity-60;
+  }
+
+  .btn-danger {
+    @apply inline-flex items-center justify-center rounded-md bg-carimbo-vermelho px-4 py-2 text-sm font-semibold text-white hover:brightness-110 disabled:cursor-not-allowed disabled:opacity-60;
+  }
+
+  .panel {
+    @apply rounded-lg border border-linha bg-white;
+  }
+
+  /* O carimbo: contorno duplo, tinta da cor do status e leve inclinação. */
+  .stamp {
+    @apply inline-block -rotate-3 rounded-sm border-2 px-2 py-0.5 text-xs font-bold tracking-wide;
+    box-shadow: inset 0 0 0 1px currentColor;
+  }
+
+  .stamp-approved {
+    @apply border-carimbo-verde text-carimbo-verde;
+  }
+
+  .stamp-rejected {
+    @apply border-carimbo-vermelho text-carimbo-vermelho;
+  }
+
+  .stamp-pending {
+    @apply rotate-0 border-dashed border-carimbo-ocre text-carimbo-ocre;
+    box-shadow: none;
+  }
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .stamp-approved,
+  .stamp-rejected {
+    animation: stamp-in 180ms ease-out;
+  }
+}
+
+@keyframes stamp-in {
+  from {
+    opacity: 0;
+    transform: scale(1.4) rotate(-3deg);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1) rotate(-3deg);
   }
 }
