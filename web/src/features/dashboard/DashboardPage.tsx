@@ -3,13 +3,28 @@ import { Link } from 'react-router';
 import { PageHeader } from '../../components/PageHeader';
 import { EmptyState, ErrorState, LoadingState } from '../../components/QueryStates';
 import { formatDate } from '../../lib/format';
+import { AbsenceTimeline } from './AbsenceTimeline';
 import { dashboardKey, getDashboard } from './dashboardApi';
 
-function StatCard({ label, value, to }: { label: string; value: number; to: string }) {
+const ABSENCE_WINDOW_DAYS = 28;
+
+interface StatCardProps {
+  label: string;
+  value: number;
+  to: string;
+  hint: string;
+  highlight?: boolean;
+}
+
+function StatCard({ label, value, to, hint, highlight = false }: StatCardProps) {
   return (
-    <Link to={to} className="panel p-5 hover:ring-2 hover:border-ctps-claro">
+    <Link
+      to={to}
+      className={`panel block border-l-4 p-5 hover:border-ctps-claro ${highlight ? 'border-l-carimbo-ocre' : 'border-l-ctps'}`}
+    >
       <p className="text-sm text-tinta-suave">{label}</p>
       <p className="mt-1 text-4xl font-extrabold text-ctps tabular-nums">{value}</p>
+      <p className="mt-2 text-xs font-semibold text-ctps-claro">{hint}</p>
     </Link>
   );
 }
@@ -34,13 +49,30 @@ export function DashboardPage() {
               label="Funcionários ativos"
               value={dashboard.data.totalActiveEmployees}
               to="/employees"
+              hint="Ver funcionários"
             />
             <StatCard
               label="Férias pendentes"
               value={dashboard.data.pendingVacations}
               to="/vacations"
+              hint={
+                dashboard.data.pendingVacations > 0 ? 'Revisar pedidos' : 'Nenhum pedido esperando'
+              }
+              highlight={dashboard.data.pendingVacations > 0}
             />
           </div>
+
+          <section className="panel p-5">
+            <h2 className="font-semibold text-tinta">Quem estará ausente</h2>
+            <p className="mb-4 text-sm text-tinta-suave">
+              De {formatDate(dashboard.data.windowStart)} a {formatDate(dashboard.data.windowEnd)}
+            </p>
+            <AbsenceTimeline
+              windowStart={dashboard.data.windowStart}
+              windowDays={ABSENCE_WINDOW_DAYS}
+              absences={dashboard.data.absences}
+            />
+          </section>
 
           <div className="grid gap-6 lg:grid-cols-2">
             <section className="panel p-5">
