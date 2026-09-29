@@ -16,6 +16,7 @@ public interface IVacationService
     Task<IReadOnlyList<VacationResponse>> ListAsync(VacationStatus? status, int? employeeId, CancellationToken cancellationToken);
     Task<IReadOnlyList<VacationResponse>> ListMineAsync(CancellationToken cancellationToken);
     Task<VacationResponse> GetByIdAsync(int id, CancellationToken cancellationToken);
+    Task<IReadOnlyList<VacationResponse>> ListDepartmentConflictsAsync(int id, CancellationToken cancellationToken);
     Task<VacationResponse> CreateAsync(CreateVacationRequest request, CancellationToken cancellationToken);
     Task ApproveAsync(int id, CancellationToken cancellationToken);
     Task RejectAsync(int id, RejectVacationRequest request, CancellationToken cancellationToken);
@@ -31,6 +32,11 @@ public class VacationService(
     private static readonly Expression<Func<VacationRequest, VacationResponse>> _toResponse =
         v => new VacationResponse(
             v.Id, v.EmployeeId, v.Employee!.Name, v.StartDate, v.EndDate, v.Status, v.RejectionReason, v.CreatedAt, v.ReviewedAt);
+
+    private static Expression<Func<VacationRequest, bool>> ActiveAndOverlapping(DateOnly startDate, DateOnly endDate) =>
+        v => (v.Status == VacationStatus.Pending || v.Status == VacationStatus.Approved)
+            && v.StartDate <= endDate
+            && startDate <= v.EndDate;
 
     public async Task<IReadOnlyList<VacationResponse>> ListAsync(
         VacationStatus? status, int? employeeId, CancellationToken cancellationToken)
@@ -71,6 +77,25 @@ public class VacationService(
         }
 
         return vacation;
+    }
+
+    public async Task<IReadOnlyList<VacationResponse>> ListDepartmentConflictsAsync(
+        int id, CancellationToken cancellationToken)
+    {
+        var target = await context.VacationRequests
+            .AsNoTracking()
+            .Where(v => v.Id == id)
+            .Select(v => new { v.StartDate, v.EndDate, v.Employee!.DepartmentId })
+            .FirstOrDefaultAsync(cancellationToken)
+            ?? throw new NotFoundException("Solicitação de férias", id);
+
+        return await context.VacationRequests
+            .AsNoTracking()
+            .Where(ActiveAndOverlapping(target.StartDate, target.EndDate))
+            .Where(v => v.Id != id && v.Employee!.DepartmentId == target.DepartmentId)
+            .OrderBy(v => v.StartDate)
+            .Select(_toResponse)
+            .ToListAsync(cancellationToken);
     }
 
     public async Task<VacationResponse> CreateAsync(CreateVacationRequest request, CancellationToken cancellationToken)
@@ -138,12 +163,9 @@ public class VacationService(
 
     private async Task EnsureNoOverlapAsync(int employeeId, CreateVacationRequest request, CancellationToken cancellationToken)
     {
-        var overlaps = await context.VacationRequests.AnyAsync(v =>
-            v.EmployeeId == employeeId &&
-            (v.Status == VacationStatus.Pending || v.Status == VacationStatus.Approved) &&
-            v.StartDate <= request.EndDate &&
-            request.StartDate <= v.EndDate,
-            cancellationToken);
+        var overlaps = await context.VacationRequests
+            .Where(ActiveAndOverlapping(request.StartDate, request.EndDate))
+            .AnyAsync(v => v.EmployeeId == employeeId, cancellationToken);
 
         if (overlaps)
         {
