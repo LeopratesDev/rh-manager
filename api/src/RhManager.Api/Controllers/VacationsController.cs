@@ -30,6 +30,13 @@ public class VacationsController(IVacationService vacationService) : ControllerB
     public async Task<IActionResult> GetById(int id, CancellationToken cancellationToken) =>
         Ok(await vacationService.GetByIdAsync(id, cancellationToken));
 
+    [HttpGet("{id:int}/conflicts")]
+    [Authorize(Roles = nameof(UserRole.Admin))]
+    [ProducesResponseType<IReadOnlyList<VacationResponse>>(StatusCodes.Status200OK)]
+    [ProducesResponseType<ProblemDetails>(StatusCodes.Status404NotFound)]
+    public async Task<IActionResult> ListDepartmentConflicts(int id, CancellationToken cancellationToken) =>
+        Ok(await vacationService.ListDepartmentConflictsAsync(id, cancellationToken));
+
     [HttpPost]
     [ProducesResponseType<VacationResponse>(StatusCodes.Status201Created)]
     [ProducesResponseType<ValidationProblemDetails>(StatusCodes.Status400BadRequest)]

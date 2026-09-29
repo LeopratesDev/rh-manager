@@ -5,6 +5,7 @@ import { getErrorMessage } from '../../api/errors';
 import { EmptyState, ErrorState, LoadingState } from '../../components/QueryStates';
 import { formatDate } from '../../lib/format';
 import { dashboardKey } from '../dashboard/dashboardApi';
+import { ConflictNotice } from './ConflictNotice';
 import { VacationStatusBadge } from './VacationStatusBadge';
 import {
   approveVacation,
@@ -121,6 +122,8 @@ export function VacationApprovals() {
                   )}
                 </div>
               </div>
+
+              {vacation.status === 'Pending' && <ConflictNotice vacationId={vacation.id} />}
 
               {rejecting?.id === vacation.id && (
                 <div className="space-y-2 rounded-md bg-papel p-3">
