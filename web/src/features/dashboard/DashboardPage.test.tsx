@@ -25,6 +25,9 @@ describe('DashboardPage', () => {
       upcomingVacations: [
         { id: 5, employeeName: 'Ana Souza', startDate: '2026-11-02', endDate: '2026-11-11' },
       ],
+      windowStart: '2026-10-01',
+      windowEnd: '2026-10-28',
+      absences: [],
     });
 
     renderApp('/dashboard');
@@ -45,6 +48,9 @@ describe('DashboardPage', () => {
       pendingVacations: 0,
       employeesByDepartment: [],
       upcomingVacations: [],
+      windowStart: '2026-10-01',
+      windowEnd: '2026-10-28',
+      absences: [],
     });
 
     renderApp('/dashboard');
