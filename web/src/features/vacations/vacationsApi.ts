@@ -46,3 +46,8 @@ export async function approveVacation(id: number): Promise<void> {
 export async function rejectVacation(id: number, reason: string): Promise<void> {
   await apiClient.post(`/api/vacations/${id}/reject`, { reason });
 }
+
+export async function listDepartmentConflicts(id: number): Promise<Vacation[]> {
+  const { data } = await apiClient.get<Vacation[]>(`/api/vacations/${id}/conflicts`);
+  return data;
+}
